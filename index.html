@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Band of Avatars — Launch Your AI Music Empire</title>
+  <meta name="description" content="Launch and manage your AI-powered music band. Fame and Fortune Awaits.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Tokens ── */
+    :root {
+      --bg:          #030209;
+      --surface:     #0d0a1c;
+      --surface-2:   #110e22;
+      --border:      rgba(168,85,247,.1);
+      --purple:      #a855f7;
+      --purple-dim:  rgba(168,85,247,.12);
+      --pink:        #ec4899;
+      --pink-dim:    rgba(236,72,153,.12);
+      --cyan:        #06b6d4;
+      --cyan-dim:    rgba(6,182,212,.12);
+      --white:       #f0eeff;
+      --muted:       #7a7891;
+      --ff-disp:     'Bebas Neue', sans-serif;
+      --ff-head:     'Syne', sans-serif;
+      --ff-body:     'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--ff-body);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9990;
+      opacity: .5;
+    }
+
+    /* ── Custom cursor ── */
+    #cursor, #cursor-ring {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: screen;
+    }
+    #cursor {
+      width: 10px; height: 10px;
+      background: var(--purple);
+      transition: transform .12s ease, background .2s ease;
+    }
+    #cursor-ring {
+      width: 34px; height: 34px;
+      border: 1px solid rgba(168,85,247,.45);
+      transition: transform .2s ease, left .12s ease, top .12s ease, border-color .2s ease;
+      background: transparent;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 800;
+      padding: 1.2rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background .35s ease, backdrop-filter .35s ease, border-color .35s ease;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled {
+      background: rgba(3,2,9,.88);
+      backdrop-filter: blur(24px);
+      border-color: var(--border);
+    }
+    .nav-logo {
+      font-family: var(--ff-disp);
+      font-size: 1.35rem;
+      letter-spacing: .12em;
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+    }
+    .nav-cta {
+      font-family: var(--ff-head);
+      font-weight: 700;
+      font-size: .72rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      padding: .6rem 1.6rem;
+      text-decoration: none;
+      clip-path: polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+      transition: opacity .2s ease, box-shadow .2s ease;
+    }
+    .nav-cta:hover { opacity: .85; box-shadow: 0 8px 30px rgba(168,85,247,.4); }
+
+    /* ── Keyframes ── */
+    @keyframes fade-up   { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fade-in   { from { opacity:0; } to { opacity:1; } }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.35;transform:scale(.65);} }
+    @keyframes orb-float { from{transform:translate(0,0) scale(1);} to{transform:translate(28px,38px) scale(1.08);} }
+    @keyframes scan-line { 0%{transform:translateY(-100%);} 100%{transform:translateY(100vh);} }
+    @keyframes marquee   { from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+    /* ── Scroll-reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(44px);
+      transition: opacity .85s cubic-bezier(.22,1,.36,1), transform .85s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .reveal-delay-1.visible { transition-delay: .12s; }
+    .reveal-delay-2.visible { transition-delay: .24s; }
+    .reveal-delay-3.visible { transition-delay: .36s; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 10rem 3rem 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(168,85,247,.13) 0%, transparent 70%);
+      top: -150px; right: -100px;
+      animation: orb-float 9s ease-in-out infinite alternate;
+    }
+    .orb-2 {
+      width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(236,72,153,.09) 0%, transparent 70%);
+      bottom: 80px; left: 28%;
+      animation: orb-float 13s ease-in-out infinite alternate-reverse;
+    }
+    .orb-3 {
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(6,182,212,.07) 0%, transparent 70%);
+      top: 32%; right: 22%;
+      animation: orb-float 11s ease-in-out infinite alternate;
+      animation-delay: -5s;
+    }
+
+    /* Scan line */
+    .scan {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(168,85,247,.2), rgba(236,72,153,.2), transparent);
+      animation: scan-line 8s linear infinite;
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      font-family: var(--ff-head);
+      font-weight: 600;
+      font-size: .68rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      border: 1px solid rgba(6,182,212,.28);
+      padding: .42rem 1.1rem;
+      margin-bottom: 2.2rem;
+      position: relative;
+      z-index: 1;
+      animation: fade-up .8s ease both .1s;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease infinite;
+    }
+
+    .hero-title {
+      font-family: var(--ff-disp);
+      font-size: clamp(5rem, 13vw, 13rem);
+      line-height: .88;
+      letter-spacing: .015em;
+      position: relative;
+      z-index: 1;
+      margin-bottom: .8rem;
+    }
+    .ht-1 {
+      display: block;
+      background: linear-gradient(130deg, var(--white) 20%, var(--purple) 65%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fade-up .75s ease both .25s;
+    }
+    .ht-2 {
+      display: block;
+      color: var(--white);
+      animation: fade-up .75s ease both .38s;
+    }
+    .ht-3 {
+      display: block;
+      background: linear-gradient(130deg, var(--pink) 0%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fade-up .75s ease both .51s;
+    }
+    .ht-4 {
+      display: block;
+      color: var(--white);
+      animation: fade-up .75s ease both .64s;
+    }
+    .hero-emojis {
+      display: block;
+      font-size: clamp(2.4rem, 6vw, 5rem);
+      margin-top: .6rem;
+      -webkit-text-fill-color: initial;
+      animation: fade-up .75s ease both .76s;
+    }
+
+    .hero-sub {
+      font-family: var(--ff-body);
+      font-size: .95rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin-top: 2.8rem;
+      line-height: 1.9;
+      position: relative;
+      z-index: 1;
+      animation: fade-up .75s ease both .9s;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 2.2rem;
+      margin-top: 2.8rem;
+      position: relative;
+      z-index: 1;
+      animation: fade-up .75s ease both 1.05s;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      font-family: var(--ff-head);
+      font-weight: 800;
+      font-size: .78rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      padding: 1rem 2.8rem;
+      text-decoration: none;
+      clip-path: polygon(14px 0%,100% 0%,calc(100% - 14px) 100%,0% 100%);
+      display: inline-block;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 50px rgba(168,85,247,.55);
+    }
+
+    .btn-ghost {
+      font-family: var(--ff-head);
+      font-weight: 600;
+      font-size: .76rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      transition: color .2s ease;
+    }
+    .btn-ghost::before {
+      content: '▶';
+      font-size: .55rem;
+      color: var(--cyan);
+    }
+    .btn-ghost:hover { color: var(--white); }
+
+    /* Canvas waveform */
+    #wave-canvas {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 130px;
+      opacity: .22;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scroll cue */
+    .scroll-cue {
+      position: absolute;
+      bottom: 2.5rem; right: 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .6rem;
+      z-index: 1;
+      animation: fade-in 1s ease both 1.6s;
+    }
+    .scroll-cue-line {
+      width: 1px; height: 44px;
+      background: linear-gradient(to bottom, var(--purple), transparent);
+      animation: pulse-dot 2.2s ease infinite;
+    }
+    .scroll-cue span {
+      font-family: var(--ff-head);
+      font-size: .58rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      writing-mode: vertical-rl;
+    }
+
+    /* ── Marquee ticker ── */
+    .ticker {
+      overflow: hidden;
+      white-space: nowrap;
+      background: var(--purple);
+      padding: .6rem 0;
+      position: relative;
+    }
+    .ticker-inner {
+      display: inline-flex;
+      animation: marquee 22s linear infinite;
+    }
+    .ticker-text {
+      font-family: var(--ff-disp);
+      font-size: 1rem;
+      letter-spacing: .18em;
+      color: var(--bg);
+      padding: 0 2rem;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(168,85,247,.25), rgba(236,72,153,.2), transparent);
+    }
+
+    /* ── Shared type styles ── */
+    .label {
+      display: inline-block;
+      font-family: var(--ff-head);
+      font-weight: 700;
+      font-size: .63rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      padding: .38rem .9rem;
+      margin-bottom: 1.4rem;
+      clip-path: polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);
+    }
+    .label-purple { color: var(--purple); background: var(--purple-dim); }
+    .label-pink    { color: var(--pink);   background: var(--pink-dim);   }
+    .label-cyan    { color: var(--cyan);   background: var(--cyan-dim);   }
+
+    .section-eyebrow {
+      font-family: var(--ff-disp);
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      line-height: .92;
+      letter-spacing: .025em;
+      margin-bottom: 1.4rem;
+    }
+    .section-body {
+      font-family: var(--ff-body);
+      font-size: .92rem;
+      color: var(--muted);
+      line-height: 1.9;
+    }
+
+    /* ── SPLIT SECTIONS (image + text) ── */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 72vh;
+      overflow: hidden;
+    }
+    .split.flip { direction: rtl; }
+    .split.flip > * { direction: ltr; }
+
+    .split-img {
+      position: relative;
+      overflow: hidden;
+    }
+    .split-img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: brightness(.8) saturate(1.15);
+      transition: transform .7s cubic-bezier(.22,1,.36,1);
+    }
+    .split:hover .split-img img { transform: scale(1.04); }
+
+    .split-img .img-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .overlay-purple { background: linear-gradient(135deg, rgba(168,85,247,.22), rgba(236,72,153,.15)); }
+    .overlay-cyan   { background: linear-gradient(135deg, rgba(6,182,212,.2),   rgba(168,85,247,.15)); }
+    .overlay-pink   { background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(6,182,212,.12)); }
+
+    /* Clip accent on images */
+    .split-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent 80%, var(--bg) 100%);
+      pointer-events: none;
+    }
+    .split.flip .split-img::after {
+      background: linear-gradient(to left, transparent 80%, var(--bg) 100%);
+    }
+
+    .split-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5.5rem 4.5rem;
+      background: var(--surface);
+    }
+    .split .section-body { max-width: 440px; }
+
+    /* ── FULL-WIDTH FEATURE CARDS ── */
+    .cards-section {
+      padding: 6.5rem 3rem;
+      background: var(--bg);
+    }
+    .cards-section.alt { background: var(--surface); }
+    .cards-section.centered { text-align: center; }
+    .cards-section.centered .section-body { max-width: 560px; margin-inline: auto; }
+    .cards-section.centered .label { display: inline-block; }
+
+    /* ── ECONOMY PAIR ── */
+    .economy {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface-2);
+      position: relative;
+    }
+    .economy::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 1px;
+      background: var(--border);
+    }
+    .eco-card {
+      padding: 5rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .eco-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .eco-card:first-child::after { background: linear-gradient(90deg, var(--purple), var(--pink)); }
+    .eco-card:last-child::after  { background: linear-gradient(90deg, var(--cyan), var(--purple)); }
+
+    .eco-icon {
+      font-size: 2.8rem;
+      margin-bottom: 2rem;
+      display: block;
+      line-height: 1;
+    }
+    .eco-card .section-eyebrow { font-size: clamp(2.2rem, 4.5vw, 4.2rem); }
+    .eco-card .section-body    { max-width: 100%; }
+
+    /* ── FINALE / CTA ── */
+    .finale {
+      padding: 10rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .finale::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(168,85,247,.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    .finale-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(168,85,247,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168,85,247,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .finale-title {
+      font-family: var(--ff-disp);
+      font-size: clamp(4rem, 12vw, 11rem);
+      line-height: .88;
+      letter-spacing: .02em;
+      background: linear-gradient(140deg, var(--purple) 0%, var(--pink) 50%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 2rem;
+    }
+    .finale-sub {
+      font-family: var(--ff-body);
+      font-size: .95rem;
+      color: var(--muted);
+      max-width: 500px;
+      margin: 0 auto 3.5rem;
+      line-height: 1.9;
+      position: relative;
+      z-index: 1;
+    }
+    .finale .btn-primary { position: relative; z-index: 1; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 2.5rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .footer-logo {
+      font-family: var(--ff-disp);
+      font-size: 1.1rem;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+    .footer-copy {
+      font-family: var(--ff-body);
+      font-size: .72rem;
+      color: var(--muted);
+      opacity: .45;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .split, .economy {
+        grid-template-columns: 1fr;
+        direction: ltr !important;
+      }
+      .split > *, .economy > * { direction: ltr; }
+      .split-img { height: 320px; min-height: 280px; }
+      .split-img::after { display: none; }
+      .split-text { padding: 3.5rem 2rem; }
+      .economy::before { display: none; }
+      .eco-card { padding: 3.5rem 2rem; }
+      nav { padding: 1rem 1.5rem; }
+      .hero { padding: 8rem 1.5rem 5rem; }
+      .cards-section { padding: 5rem 1.5rem; }
+      .finale { padding: 7rem 1.5rem; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+    @media (max-width: 500px) {
+      .hero-title { font-size: clamp(4rem, 18vw, 6rem); }
+      .hero-actions { gap: 1.4rem; }
+      .scroll-cue { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- ── Navigation ── -->
+  <nav id="nav">
+    <a href="#" class="nav-logo">BAND OF AVATARS</a>
+    <a href="#start" class="nav-cta">Launch Your Band</a>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero" id="start">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="scan"></div>
+
+    <div class="hero-badge">Fame and Fortune Awaits</div>
+
+    <h1 class="hero-title">
+      <span class="ht-1">LAUNCH AND</span>
+      <span class="ht-2">MANAGE YOUR</span>
+      <span class="ht-3">AI-POWERED</span>
+      <span class="ht-4">MUSIC BAND</span>
+      <span class="hero-emojis">🎵🎸👩‍🎤🤖</span>
+    </h1>
+
+    <p class="hero-sub">
+      Who will launch the next global music sensation? With Band of Avatars, the power to create, inspire, and monetize is in your hands. Step into the future of music and let your imagination take center stage.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#start" class="btn-primary">Launch Your Band</a>
+      <a href="#preview" class="btn-ghost">listen here</a>
+    </div>
+
+    <canvas id="wave-canvas"></canvas>
+
+    <div class="scroll-cue">
+      <div class="scroll-cue-line"></div>
+      <span>scroll</span>
+    </div>
+  </section>
+
+  <!-- ── Ticker ── -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-inner">
+      <span class="ticker-text">CREATE YOUR BAND</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">AI-POWERED ARTISTS</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">SHARE TO EARN</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">INVITE TO EARN</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">FAME &amp; FORTUNE</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">VIRTUAL CONCERTS</span>
+      <span class="ticker-text">★</span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-text">CREATE YOUR BAND</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">AI-POWERED ARTISTS</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">SHARE TO EARN</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">INVITE TO EARN</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">FAME &amp; FORTUNE</span>
+      <span class="ticker-text">★</span>
+      <span class="ticker-text">VIRTUAL CONCERTS</span>
+      <span class="ticker-text">★</span>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Life of Avatars ── -->
+  <section class="split" aria-label="Life of Avatars">
+    <div class="split-img">
+      <img src="assets/images/image03.jpg" alt="AI-powered avatar artist" loading="lazy">
+      <div class="img-overlay overlay-purple"></div>
+    </div>
+    <div class="split-text reveal">
+      <span class="label label-purple">Life of Avatars</span>
+      <h2 class="section-eyebrow">Awaken the<br>Artist Within</h2>
+      <p class="section-body">Create your own AI-powered artists and watch them thrive. These avatars are more than digital performers—they have unique personalities, worldviews, and musical styles. Influence their journey, share their music, and connect with fans worldwide.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 3: Can You See It? ── -->
+  <section class="cards-section alt centered" aria-label="Name Your Band">
+    <div class="reveal">
+      <span class="label label-pink">Can You See It?</span>
+      <h2 class="section-eyebrow">Name Your Band</h2>
+      <p class="section-body">Every legendary band starts with a story. What will yours be? Craft a unique identity and narrative for your band that resonates with fans and sets you apart.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 4: Can You Hear That? ── -->
+  <section class="split flip" aria-label="Imagine Your Music">
+    <div class="split-img">
+      <img src="assets/images/image14.jpg" alt="AI-generated music and sound" loading="lazy">
+      <div class="img-overlay overlay-cyan"></div>
+    </div>
+    <div class="split-text reveal">
+      <span class="label label-cyan">Can You Hear That?</span>
+      <h2 class="section-eyebrow">Imagine Your<br>Music</h2>
+      <p class="section-body">With our advanced AI tuned to create evolutionary music, your band can explore any genre or invent a new one. Let your sound reflect your vision and captivate the world.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 5: Agents of Music ── -->
+  <section class="cards-section" aria-label="Agents of Music">
+    <div class="reveal" style="max-width: 700px;">
+      <span class="label label-purple">Agents Of Music</span>
+      <h2 class="section-eyebrow">Unleash the<br>Power of Fans</h2>
+      <p class="section-body">Transform your audience into active participants. Fans can promote, share, and even co-create with your band, driving engagement and amplifying your reach.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Sections 6 + 7: Economy Pair ── -->
+  <div class="economy" aria-label="Economy">
+    <div class="eco-card reveal">
+      <span class="eco-icon">⬡</span>
+      <span class="label label-purple">Curation Economy</span>
+      <h2 class="section-eyebrow">Share-to-Earn</h2>
+      <p class="section-body">Fans become ambassadors by sharing your music. Every share drives engagement and revenue, turning your community into a powerful marketing force.</p>
+    </div>
+    <div class="eco-card reveal reveal-delay-2">
+      <span class="eco-icon">◈</span>
+      <span class="label label-cyan">Referral Economy</span>
+      <h2 class="section-eyebrow">Invite-to-Earn</h2>
+      <p class="section-body">Empower your fans to grow your band's community. With every invite, they earn rewards, creating a thriving ecosystem of mutual benefit.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 8: Artificial Life Forms ── -->
+  <section class="split" aria-label="Artificial Life Forms">
+    <div class="split-img">
+      <img src="assets/images/image01.jpg" alt="Living avatar entities" loading="lazy">
+      <div class="img-overlay overlay-pink"></div>
+    </div>
+    <div class="split-text reveal">
+      <span class="label label-pink">Artificial Life Forms</span>
+      <h2 class="section-eyebrow">Life of<br>Avatars</h2>
+      <p class="section-body">Your avatars are more than performers—they're living, evolving entities. They grow, adapt, and surprise you with their creativity, making every interaction unique.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 9: Love and Tantrums ── -->
+  <section class="cards-section alt centered" aria-label="Manage Your Avatars">
+    <div class="reveal">
+      <span class="label label-pink">Love and Tantrums</span>
+      <h2 class="section-eyebrow">Manage Your Avatars</h2>
+      <p class="section-body">Guide your avatars through their artistic journey. From creative highs to dramatic lows, you're the manager, mentor, and mastermind behind their success.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 10: Ups and Downs ── -->
+  <section class="split flip" aria-label="Manage Your Band">
+    <div class="split-img">
+      <img src="assets/images/image04.jpg" alt="Band management and evolution" loading="lazy">
+      <div class="img-overlay overlay-purple"></div>
+    </div>
+    <div class="split-text reveal">
+      <span class="label label-purple">Ups and Downs</span>
+      <h2 class="section-eyebrow">Manage<br>Your Band</h2>
+      <p class="section-body">Oversee your band's evolution. Coordinate releases, plan virtual tours, and navigate the challenges of the music industry—all in the digital realm.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── Section 11: Community Commerce / Finale ── -->
+  <section class="finale reveal" aria-label="Community Commerce">
+    <div class="finale-grid-bg"></div>
+    <span class="label label-cyan" style="display:inline-block; margin-bottom: 2.5rem;">Community Commerce</span>
+    <div class="finale-title">MONETIZE YOUR<br>POPULARITY</div>
+    <p class="finale-sub">Turn your band's fame into fortune. From exclusive tracks to virtual concerts, unlock new revenue streams and share the success with your community.</p>
+    <a href="#start" class="btn-primary">Launch Your Band</a>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <span class="footer-logo">BAND OF AVATARS</span>
+    <span class="footer-copy">© 2025 Band of Avatars. All rights reserved.</span>
+  </footer>
+
+  <script>
+    /* ── Custom cursor ── */
+    const $cursor = document.getElementById('cursor');
+    const $ring   = document.getElementById('cursor-ring');
+    let mx = 0, my = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      $cursor.style.left = mx + 'px';
+      $cursor.style.top  = my + 'px';
+      setTimeout(() => {
+        $ring.style.left = mx + 'px';
+        $ring.style.top  = my + 'px';
+      }, 90);
+    });
+
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        $cursor.style.transform = 'translate(-50%,-50%) scale(2.2)';
+        $cursor.style.background = 'var(--pink)';
+        $ring.style.borderColor = 'rgba(236,72,153,.5)';
+      });
+      el.addEventListener('mouseleave', () => {
+        $cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+        $cursor.style.background = 'var(--purple)';
+        $ring.style.borderColor = 'rgba(168,85,247,.45)';
+      });
+    });
+
+    /* ── Nav on scroll ── */
+    const $nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      $nav.classList.toggle('scrolled', window.scrollY > 80);
+    }, { passive: true });
+
+    /* ── Scroll reveal ── */
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* ── Animated waveform ── */
+    (function() {
+      const canvas = document.getElementById('wave-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let raf, t = 0;
+
+      function resize() {
+        canvas.width  = canvas.parentElement.offsetWidth;
+        canvas.height = 130;
+      }
+      resize();
+      window.addEventListener('resize', resize, { passive: true });
+
+      const waves = [
+        { color: '#a855f7', amp: 20, freq: .016, spd: .018, alpha: .65 },
+        { color: '#ec4899', amp: 13, freq: .021, spd: .026, alpha: .5  },
+        { color: '#06b6d4', amp: 28, freq: .011, spd: .014, alpha: .4  },
+        { color: '#a855f7', amp:  8, freq: .034, spd: .032, alpha: .3  },
+      ];
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cy = canvas.height / 2;
+
+        waves.forEach(w => {
+          ctx.beginPath();
+          ctx.strokeStyle = w.color;
+          ctx.globalAlpha = w.alpha;
+          ctx.lineWidth   = 1.4;
+          for (let x = 0; x <= canvas.width; x += 3) {
+            const y = cy
+              + Math.sin(x * w.freq + t * w.spd * 60) * w.amp
+              + Math.sin(x * w.freq * 2.3 + t * w.spd * 35) * (w.amp * .38);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
+
+        ctx.globalAlpha = 1;
+        t++;
+        raf = requestAnimationFrame(draw);
+      }
+
+      draw();
+    })();
+  </script>
+</body>
+</html>
