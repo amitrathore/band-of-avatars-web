@@ -554,6 +554,74 @@
     }
     .finale .btn-primary { position: relative; z-index: 1; }
 
+    /* ── ROYALTY / TRACK PROTOCOL ── */
+    .royalty {
+      background: #f5e642;
+      padding: 9rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Subtle dot-grid pattern in yellow */
+    .royalty::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(0,0,0,.08) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    /* Large watermark letter */
+    .royalty::after {
+      content: '₿';
+      position: absolute;
+      right: -1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--ff-disp);
+      font-size: clamp(18rem, 36vw, 38rem);
+      line-height: 1;
+      color: rgba(0,0,0,.04);
+      pointer-events: none;
+      user-select: none;
+    }
+    .royalty-inner {
+      max-width: 900px;
+      position: relative;
+      z-index: 1;
+    }
+    .royalty-eyebrow {
+      display: inline-block;
+      font-family: var(--ff-head);
+      font-weight: 700;
+      font-size: .68rem;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,.45);
+      border: 1px solid rgba(0,0,0,.18);
+      padding: .4rem 1rem;
+      margin-bottom: 2rem;
+      clip-path: polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);
+    }
+    .royalty-title {
+      font-family: var(--ff-disp);
+      font-size: clamp(5rem, 14vw, 13rem);
+      line-height: .88;
+      letter-spacing: .02em;
+      color: #0a0808;
+      margin-bottom: 3rem;
+    }
+    .royalty-body {
+      font-family: var(--ff-body);
+      font-size: 1rem;
+      line-height: 1.9;
+      color: rgba(0,0,0,.62);
+      max-width: 680px;
+    }
+    @media (max-width: 960px) {
+      .royalty { padding: 6rem 1.5rem; }
+      .royalty::after { font-size: 14rem; right: -2rem; }
+    }
+
     /* ── FOOTER ── */
     footer {
       padding: 2.5rem 3rem;
@@ -804,6 +872,17 @@
       <p class="section-body">Collaborate with brands and sponsors to amplify your band's reach. Your avatars become influencers, driving campaigns that resonate with fans.</p>
     </div>
   </div>
+
+  <div class="divider"></div>
+
+  <!-- ── Track Protocol / Royalty ── -->
+  <section class="royalty reveal" aria-label="Unlock Your Royalty">
+    <div class="royalty-inner">
+      <span class="royalty-eyebrow">Track Protocol</span>
+      <h2 class="royalty-title">Unlock Your<br>Royalty</h2>
+      <p class="royalty-body">Band of Avatars integrates the Track Protocol as the backbone of the royalty system, meticulously recording and rewarding every play, share, and transaction. Built on blockchain technology, it provides transparency and trust, allowing creators to see exactly how their music is performing and earning in real time.</p>
+    </div>
+  </section>
 
   <div class="divider"></div>
 
